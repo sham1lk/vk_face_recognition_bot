@@ -18,7 +18,7 @@ class VkEventHandler:
         self.vk_session_group_api = vk_session_group.get_api()
         self.vk_session_api = self.vk_session.get_api()
 
-    def __call__(self, num_friend=10):
+    def __call__(self, num_friend=100):
         self.num_friend = num_friend
         longpoll = VkLongPoll(self.vk_session_group)
         for event in longpoll.listen():
@@ -40,7 +40,17 @@ class VkEventHandler:
             response = requests.get(image_url)
             bytes_im = io.BytesIO(response.content)
             image = Image.open(bytes_im)
+            self.vk_session_group_api.messages.send(
+                user_id=event.user_id,
+                random_id=self.get_random_id(),
+                message=f"Фото получил, скачиваю информацию о твоих друзьях",
+            )
             friends_images = self.get_friends_images(event.user_id, self.num_friend)
+            self.vk_session_group_api.messages.send(
+                user_id=event.user_id,
+                random_id=self.get_random_id(),
+                message=f"Начинаю поиск",
+            )
             img = find_face(image, friends_images)
             img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
             tmp = f"./{self.get_random_id()}.png"
